@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
+import socket from '../utils/socket';
 
 export default function Player() {
     const playerRef = useRef();
@@ -51,6 +52,14 @@ export default function Player() {
 
         playerRef.current.position.x += moveX;
         playerRef.current.position.z += moveZ;
+
+        //Actualizamos la posicion del jugador para la vista de otros jugadores, le decimos al backend donde estamos en cada momento
+        socket.emit('playerMove', {
+            x: playerRef.current.position.x,
+            y: playerRef.current.position.y,
+            z: playerRef.current.position.z
+
+        });
     });
 
     return (

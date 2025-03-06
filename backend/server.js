@@ -12,16 +12,35 @@ const io = socketIO(server, {
 app.use(cors());
 app.use(express.json());
 
-// - Evento cuando se conecta alguien
+// Lista de jugadores conectados
+const players = {};
+
+// Cuando un player se conecta
 io.on('connection', (socket) => {
     console.log(' 🟢 Nuevo jugador conectado:', socket.id);
 
+    // Añadimos el player a la lista
+    players[socket.id] = { x: 0, y: 0.5, z: 0 };
+
+    // Enviamos al nuevo player la lista actual de jugadores
+    socket.emit('currentPlayers', players);
+
+    // Avisamos al resto que alguien ha entrado
+    socket.broadcast.emit('playerJoined', { id: socket.id });
+
+    // Recibimos movimientos y los reemitimos a todos (menos al que lo envió)
+    socket.on('playerMove', (position) => {
+        players[socket.id] = position;
+        socket.broadcast.emit('updatePlayer', { id: socket.id, ...position });
+    });
+
+    // Cuando se desconecta
     socket.on('disconnect', () => {
         console.log('🔴 Jugador desconectado:', socket.id);
+        delete players[socket.id];
+        socket.broadcast.emit('removePlayer', socket.id);
     });
 });
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Servidor corriendo en el puerto ${PORT}`));
-
-
