@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import socket from '../utils/socket';
+import World from '../components/World';
 
 export default function Home() {
 
@@ -22,8 +23,8 @@ export default function Home() {
     }, []);
 
     return (
-        <main className="flex min-h-screen items-center justify-center">
-            <h1 className="text-4xl font-bold">Island Games 🌴</h1>
+        <main className="w-screen h-screen">
+            <World />
         </main>
     );
 }
