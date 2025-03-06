@@ -53,7 +53,9 @@ export default function World() {
     }, []);
 
     return (
+        
         <Canvas camera={{ position: [0, 10, 15], fov: 50 }}>
+            {/* Renderizamos la isla y todos sus objetos, jugadores..etc*/}
             <ambientLight intensity={0.5} />
             <directionalLight position={[10, 10, 5]} />
             <Sky sunPosition={[100, 20, 100]} />

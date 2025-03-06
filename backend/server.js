@@ -28,13 +28,13 @@ io.on('connection', (socket) => {
     // Avisamos al resto que alguien ha entrado
     socket.broadcast.emit('playerJoined', { id: socket.id });
 
-    // Recibimos movimientos y los reemitimos a todos (menos al que lo envió)
+    // Si el player se mueve, avisamos al server a donde en todo momento
     socket.on('playerMove', (position) => {
         players[socket.id] = position;
         socket.broadcast.emit('updatePlayer', { id: socket.id, ...position });
     });
 
-    // Cuando se desconecta
+    // Cuando se desconecta, avisamos a todos
     socket.on('disconnect', () => {
         console.log('🔴 Jugador desconectado:', socket.id);
         delete players[socket.id];
