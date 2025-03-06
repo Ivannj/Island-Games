@@ -14,10 +14,10 @@ app.use(express.json());
 
 // - Evento cuando se conecta alguien
 io.on('connection', (socket) => {
-    console.log('Nuevo jugador conectado:', socket.id);
+    console.log(' 🟢 Nuevo jugador conectado:', socket.id);
 
     socket.on('disconnect', () => {
-        console.log('Jugador desconectado:', socket.id);
+        console.log('🔴 Jugador desconectado:', socket.id);
     });
 });
 
