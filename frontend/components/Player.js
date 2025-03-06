@@ -1,36 +1,60 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
 
 export default function Player() {
-    const [position, setPosition] = useState([0, 0.5, 0]);
+    const playerRef = useRef();
 
-    useEffect(() => {
+    const speed = 0.1; // velocidad de movimiento
+
+    // Estados para controlar qué teclas están pulsadas
+    const keysPressed = useRef({
+        ArrowUp: false,
+        ArrowDown: false,
+        ArrowLeft: false,
+        ArrowRight: false,
+    });
+
+    // Añadimos listeners al cargar (igual que antes), pero guardamos en keysPressed
+    React.useEffect(() => {
         const handleKeyDown = (e) => {
-            setPosition(prev => {
-                const [x, y, z] = prev;
-                switch (e.key) {
-                    case 'ArrowUp':    // Avanzar (hacia adelante en Z)
-                        return [x, y, z - 0.5];
-                    case 'ArrowDown':  // Retroceder
-                        return [x, y, z + 0.5];
-                    case 'ArrowLeft':  // Izquierda
-                        return [x - 0.5, y, z];
-                    case 'ArrowRight': // Derecha
-                        return [x + 0.5, y, z];
-                    default:
-                        return prev; // No cambiar nada
-                }
-            });
+            if (keysPressed.current[e.key] !== undefined) {
+                keysPressed.current[e.key] = true;
+            }
+        };
+
+        const handleKeyUp = (e) => {
+            if (keysPressed.current[e.key] !== undefined) {
+                keysPressed.current[e.key] = false;
+            }
         };
 
         window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keyup', handleKeyUp);
 
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('keyup', handleKeyUp);
         };
     }, []);
 
+    // useFrame = Se ejecuta cada frame (como Update() en Unity)
+    useFrame(() => {
+        if (!playerRef.current) return;
+
+        let moveX = 0;
+        let moveZ = 0;
+
+        if (keysPressed.current.ArrowUp) moveZ -= speed;
+        if (keysPressed.current.ArrowDown) moveZ += speed;
+        if (keysPressed.current.ArrowLeft) moveX -= speed;
+        if (keysPressed.current.ArrowRight) moveX += speed;
+
+        playerRef.current.position.x += moveX;
+        playerRef.current.position.z += moveZ;
+    });
+
     return (
-        <mesh position={position}>
+        <mesh ref={playerRef} position={[0, 0.5, 0]}>
             <boxGeometry />
             <meshStandardMaterial color="orange" />
         </mesh>
