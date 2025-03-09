@@ -15,26 +15,50 @@ app.use(express.json());
 // Lista de jugadores conectados
 const players = {};
 
-// Cuando un player se conecta
+// Función para generar colores aleatorios en formato hexadecimal
+const getRandomColor = () => {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+};
+
+// Cuando un jugador se conecta
 io.on('connection', (socket) => {
     console.log(' 🟢 Nuevo jugador conectado:', socket.id);
 
-    // Añadimos el player a la lista
-    players[socket.id] = { x: 0, y: 0.5, z: 0 };
+    // Asignamos un color aleatorio y una posición inicial
+    players[socket.id] = { 
+        x: 0, 
+        y: 0.5, 
+        z: 0, 
+        color: getRandomColor() 
+    };
+    console.log(`🎨 Color asignado a ${socket.id}:`, players[socket.id].color);
 
-    // Enviamos al nuevo player la lista actual de jugadores
+    // Enviamos la lista de jugadores al nuevo jugador
     socket.emit('currentPlayers', players);
+    console.log("📡 Enviando currentPlayers a:", socket.id, players);
 
-    // Avisamos al resto que alguien ha entrado
-    socket.broadcast.emit('playerJoined', { id: socket.id });
+    // Avisamos a los demás jugadores que alguien nuevo entró
+    socket.broadcast.emit('playerJoined', { id: socket.id, color: players[socket.id].color });
 
-    // Si el player se mueve, avisamos al server a donde en todo momento
+    // Cuando el jugador se mueve, mantenemos su color
     socket.on('playerMove', (position) => {
-        players[socket.id] = position;
-        socket.broadcast.emit('updatePlayer', { id: socket.id, ...position });
+        players[socket.id] = { ...players[socket.id], ...position };
+        socket.broadcast.emit('updatePlayer', { id: socket.id, ...players[socket.id] });
     });
 
-    // Cuando se desconecta, avisamos a todos
+    //Listener test *************************************************************************************
+    socket.on('requestPlayers', () => {
+        console.log(`🔄 ${socket.id} ha solicitado la lista de jugadores.`);
+        console.log("📡 Enviando currentPlayers desde el servidor:", players);
+        socket.emit('currentPlayers', players);
+    });
+
+    // Cuando el jugador se desconecta, lo eliminamos
     socket.on('disconnect', () => {
         console.log('🔴 Jugador desconectado:', socket.id);
         delete players[socket.id];

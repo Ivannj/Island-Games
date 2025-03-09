@@ -1,10 +1,10 @@
 import React from 'react';
 
-export default function OtherPlayer({ position }) {
+export default function OtherPlayer({ position, color }) {
     return (
         <mesh position={position}>
             <boxGeometry />
-            <meshStandardMaterial color="blue" />
+            <meshStandardMaterial color={color} />
         </mesh>
     );
 }
