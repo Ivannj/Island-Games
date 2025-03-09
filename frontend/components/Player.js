@@ -7,7 +7,6 @@ export default function Player() {
   const [color, setColor] = useState(null);
   const speed = 0.1; // velocidad de movimiento
 
-  // Estados para controlar qué teclas están pulsadas
   const keysPressed = useRef({
     ArrowUp: false,
     ArrowDown: false,
@@ -15,11 +14,11 @@ export default function Player() {
     ArrowRight: false,
   });
 
-  // Escuchar el color asignado por el servidor
+  // Escuchar el color asignado por el servidor y asegurarse de actualizarlo correctamente
   useEffect(() => {
     console.log("📡 Player.js montado, esperando datos del servidor...");
 
-    socket.on('currentPlayers', (players) => {
+    const handlePlayersUpdate = (players) => {
         console.log("📡 Recibidos jugadores en Player.js:", players);
         console.log(`🔎 Mi ID es: ${socket.id}`);
 
@@ -29,27 +28,29 @@ export default function Player() {
         } else {
             console.log("⚠️ No encontré mi ID en la lista de jugadores.");
         }
-    });
+    };
 
-    socket.on("connect", () => {
+    socket.on('currentPlayers', handlePlayersUpdate);
+    
+    // Emitimos la petición solo después de que el socket esté conectado
+    if (socket.connected) {
         console.log("🔄 Cliente conectado, solicitando lista de jugadores...");
         socket.emit("requestPlayers");
-    });
-
-    // **Forzar una nueva solicitud después de 100ms si no hemos recibido nada**
-    setTimeout(() => {
-        console.log("🔄 No hemos recibido `currentPlayers`, enviando otra solicitud...");
-        socket.emit("requestPlayers");
-    }, 100);
+    } else {
+        socket.on("connect", () => {
+            console.log("🔄 Cliente reconectado, solicitando lista de jugadores...");
+            socket.emit("requestPlayers");
+        });
+    }
 
     return () => {
-        socket.off("currentPlayers");
+        socket.off("currentPlayers", handlePlayersUpdate);
         socket.off("connect");
     };
-}, []);
+  }, []);
 
-  // Añadimos listeners al cargar (igual que antes), pero guardamos en keysPressed
-  React.useEffect(() => {
+  // Control de movimiento
+  useEffect(() => {
     const handleKeyDown = (e) => {
       if (keysPressed.current[e.key] !== undefined) {
         keysPressed.current[e.key] = true;
@@ -71,7 +72,6 @@ export default function Player() {
     };
   }, []);
 
-  // useFrame = Se ejecuta cada frame (como Update() en Unity)
   useFrame(() => {
     if (!playerRef.current) return;
 
@@ -86,7 +86,6 @@ export default function Player() {
     playerRef.current.position.x += moveX;
     playerRef.current.position.z += moveZ;
 
-    //Actualizamos la posicion del jugador para la vista de otros jugadores, le decimos al backend donde estamos en cada momento
     socket.emit("playerMove", {
       x: playerRef.current.position.x,
       y: playerRef.current.position.y,
