@@ -71,7 +71,7 @@ export default function Player() {
       window.removeEventListener("keyup", handleKeyUp);
     };
   }, []);
-
+//Movimiento de jugador con useFrame para que se actualize cada frame y hacerlo mas fluido el movimiento
   useFrame(() => {
     if (!playerRef.current) return;
 
@@ -85,13 +85,23 @@ export default function Player() {
 
     playerRef.current.position.x += moveX;
     playerRef.current.position.z += moveZ;
+});
 
-    socket.emit("playerMove", {
-      x: playerRef.current.position.x,
-      y: playerRef.current.position.y,
-      z: playerRef.current.position.z,
-    });
-  });
+// Enviamos al servidor menos peticiones  10 por segundo en vez de 1000
+useEffect(() => {
+    const sendPosition = () => {
+        if (playerRef.current) {
+            socket.emit("playerMove", {
+                x: playerRef.current.position.x,
+                y: playerRef.current.position.y,
+                z: playerRef.current.position.z
+            });
+        }
+    };
+
+    const interval = setInterval(sendPosition, 100); // Envía posición cada 100ms
+    return () => clearInterval(interval); // Limpia el intervalo cuando se desmonta
+}, []);
 
   return (
     <mesh ref={playerRef} position={[0, 0.5, 0]}>
