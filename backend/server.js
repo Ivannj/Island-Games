@@ -58,7 +58,7 @@ io.on('connection', (socket) => {
         socket.emit('currentPlayers', players);
     });
 
-    // Cuando el jugador se desconecta, lo eliminamos
+    // Cuando el jugador se desconecta, lo eliminamos y avisamos al resto de jugadores para que tambien dejen de verlo en sus pantallas. Desde World lo escuchamos y lo elminamos del frontend.
     socket.on('disconnect', () => {
         console.log('🔴 Jugador desconectado:', socket.id);
         delete players[socket.id];

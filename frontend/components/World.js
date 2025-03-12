@@ -23,6 +23,7 @@ export default function World() {
             }));
         };
 
+        // Escuchamos RemovePlayer que viene del servidor, sino avisamos a los demas desde el frontend, los jugadores podrian ver congelado en la ultima posicion al jugador que se ha desconectado.
         const handleRemovePlayer = (id) => {
             setPlayers(prev => {
                 const updated = { ...prev };

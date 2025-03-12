@@ -3,7 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import socket from "../utils/socket";
 
 export default function Player() {
-  const playerRef = useRef();
+  const playerRef = useRef(); // No causa re-render al cambiar la posición
   const [color, setColor] = useState(null);
   const speed = 0.1; // velocidad de movimiento
 
@@ -71,7 +71,7 @@ export default function Player() {
       window.removeEventListener("keyup", handleKeyUp);
     };
   }, []);
-//Movimiento de jugador con useFrame para que se actualize cada frame y hacerlo mas fluido el movimiento
+//Movimiento de jugador con useFrame para que se actualize cada frame y hacerlo mas fluido el movimiento, en useEffect no tiene sentido porque no lo actuaizaria cada frame o cada cierto tiempo sino cuando react necesite renderizar, se veria lento, no tiene sentido utilizar useFrame.
   useFrame(() => {
     if (!playerRef.current) return;
 
@@ -87,7 +87,7 @@ export default function Player() {
     playerRef.current.position.z += moveZ;
 });
 
-// Enviamos al servidor menos peticiones  10 por segundo en vez de 1000
+// Enviamos al servidor menos peticiones  10 por segundo en vez de 60 (frame a frame)
 useEffect(() => {
     const sendPosition = () => {
         if (playerRef.current) {
@@ -99,7 +99,7 @@ useEffect(() => {
         }
     };
 
-    const interval = setInterval(sendPosition, 100); // Envía posición cada 100ms
+    const interval = setInterval(sendPosition, 100); // Envía posición cada 100ms y no sobrecargamos al servidro con 60 peticiones por segundo como seria cada frame utilizando useFrame. 
     return () => clearInterval(interval); // Limpia el intervalo cuando se desmonta
 }, []);
 
